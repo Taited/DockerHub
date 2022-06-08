@@ -51,8 +51,9 @@ RUN /opt/conda/bin/conda init bash \
     && conda install pytorch==1.10.1 \
     torchvision==0.11.2 \
     torchaudio==0.10.1 \
-    cudatoolkit=11.3 -c pytorch -c conda-forge \
-    -y
+    cudatoolkit=11.3 -c pytorch -c conda-forge -y \
+    && pip3 install openmim \
+    && mim install mmcv-full
 
 # Login User
 USER tedsun
