@@ -4,9 +4,19 @@ ARG OS_TYPE=x86_64
 ARG PY_VER=3.8.11
 ARG USER=tedsun
 
-# FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
-FROM ubuntu:20.04
+# FROM nvidia/cuda:10.2-base 
+FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND noninteractive
+
+# Fix source error of Nvidia
+#RUN rm /etc/apt/sources.list.d/cuda.list \
+#    && rm /etc/apt/sources.list.d/nvidia-ml.list \
+#    && apt-key del 7fa2af80 \
+#    && apt-get update && apt-get install -y --no-install-recommends wget \
+#    && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-keyring_1.0-1_all.deb \
+#    && dpkg -i cuda-keyring_1.0-1_all.deb
+#ADD https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb .
+#RUN dpkg -i cuda-keyring_1.0-1_all.deb
 
 # System packages
 RUN apt-get update \
@@ -14,24 +24,7 @@ RUN apt-get update \
     && apt-get -yq install curl wget jq vim sudo
 
 # Add User
-RUN useradd --create-home --no-log-init --shell /bin/bash tedsun \
-    && adduser tedsun sudo \
-    && echo "tedsun:tedsun123" | chpasswd
-
-# Config UID and GID
-RUN usermod -u 1000 tedsun\
-    && usermod -G 1000 tedsun
-
-# Working Directory
-WORKDIR /home/tedsun
-
-# Download necessary configs from github
-RUN git clone https://github.com/Taited/DockerHub
-
-# Config SSH
-RUN apt-get install openssh-server -y\
-    && mkdir /home/tedsun/.ssh \
-    && cat ./DockerHub/A100_ted.pub >> /home/tedsun/.ssh/autorized_keys 
+RUN echo "root:tedsun123" | chpasswd
 
 # Install miniconda to /miniconda
 RUN wget --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh \
@@ -45,18 +38,24 @@ RUN wget --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86
 ENV PATH /opt/conda/bin:$PATH
 
 RUN /opt/conda/bin/conda init bash \
-    && . /root/.bashrc \
-    && conda create -n open-mmlab python=3.8 -y \
-    && conda activate open-mmlab \
-    && conda install pytorch==1.10.1 \
-    torchvision==0.11.2 \
-    torchaudio==0.10.1 \
-    cudatoolkit=11.3 -c pytorch -c conda-forge -y \
-    && pip3 install openmim \
-    && mim install mmcv-full
+    && . /root/.bashrc
+#    && conda create -n open-mmlab python=3.8 -y \
+#    && conda activate open-mmlab \
+#    && conda install pytorch==1.10.1 \
+#    torchvision==0.11.2 \
+#    torchaudio==0.10.1 \
+#    cudatoolkit=11.3 -c pytorch -c conda-forge -y \
+#    && pip3 install openmim \
+#    && mim install mmcv-full
 
-# Login User
-USER tedsun
-# RUN sudo chmod 700 /home/tedsun/.ssh -S \
-#     && sudo chmod 600 /home/tedsun/.ssh/autorized_keys -S
-# && service start sshd
+# Config SSH
+RUN git clone https://github.com/Taited/DockerHub \
+    && apt-get install openssh-server -y\
+    && mkdir /root/.ssh \
+    && cat ./DockerHub/A100_ted.pub >> /root/.ssh/authorized_keys \
+    && chmod 777 /etc/ssh/sshd_config \
+    && rm /etc/ssh/sshd_config \
+    && mv ./DockerHub/sshd_config /etc/ssh/ \
+    && chmod 700 /root/.ssh \
+    && chmod 600 /root/.ssh/authorized_keys \
+    && service ssh start
