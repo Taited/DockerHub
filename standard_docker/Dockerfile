@@ -17,9 +17,7 @@ RUN rm /etc/apt/sources.list.d/cuda.list \
     && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-keyring_1.0-1_all.deb \
     && dpkg -i cuda-keyring_1.0-1_all.deb \
     && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb \
-    && dpkg -i cuda-keyring_1.0-1_all.deb.1 \
-    && rm cuda-keyring_1.0-1_all.deb \
-    $$ rm cuda-keyring_1.0-1_all.deb.1
+    && dpkg -i cuda-keyring_1.0-1_all.deb.1
 
 # System packges
 RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libsm6 libxrender-dev libxext6 \
